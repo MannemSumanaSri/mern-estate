@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux"
-
 export default function Profile() {
+  
   const {currentUser}=useSelector((state)=>state.user)
   return (
     <div className="p-3 max-w-lg mx-auto">
