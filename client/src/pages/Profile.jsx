@@ -3,6 +3,9 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 
 import {
+  deleteUserFailure,
+  deleteUserStart,
+  deleteUserSuccess,
   updateUserFailure,
   updateUserStart,
   updateUserSuccess,
@@ -10,22 +13,28 @@ import {
 
 export default function Profile() {
 
-  const { currentUser,loading,error } = useSelector((state) => state.user);
+  const { currentUser, loading, error } = useSelector(
+    (state) => state.user
+  );
 
   const [formData, setFormData] = useState({});
-  const [updateSuccess,setUpdateSuccess]=useState(false);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+
   const dispatch = useDispatch();
 
   // handle input changes
   const handleChange = (e) => {
+
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,
     });
+
   };
 
-  // handle form submit
+  // update user
   const handleSubmit = async (e) => {
+
     e.preventDefault();
 
     try {
@@ -39,6 +48,7 @@ export default function Profile() {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
           body: JSON.stringify(formData),
         }
       );
@@ -46,17 +56,54 @@ export default function Profile() {
       const data = await res.json();
 
       if (data.success === false) {
+
         dispatch(updateUserFailure(data.message));
         return;
+
       }
 
       dispatch(updateUserSuccess(data));
+
       setUpdateSuccess(true);
-      console.log("User updated successfully");
 
     } catch (error) {
 
       dispatch(updateUserFailure(error.message));
+
+    }
+  };
+
+  // delete user
+  const handleDeleteUser = async () => {
+
+    try {
+
+      dispatch(deleteUserStart());
+
+      const res = await fetch(
+        `/api/user/delete/${currentUser._id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success === false) {
+
+        dispatch(deleteUserFailure(data.message));
+        return;
+
+      }
+
+      dispatch(deleteUserSuccess());
+
+      window.location.href = "/SignIn";
+
+    } catch (error) {
+
+      dispatch(deleteUserFailure(error.message));
 
     }
   };
@@ -105,17 +152,21 @@ export default function Profile() {
           onChange={handleChange}
         />
 
-        <button disabled={loading}
+        <button
+          disabled={loading}
           className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80"
         >
-          {loading ? 'Loading...':'Update'}
+          {loading ? "Loading..." : "Update"}
         </button>
 
       </form>
 
       <div className="flex justify-between mt-5">
 
-        <span className="text-red-700 cursor-pointer">
+        <span
+          onClick={handleDeleteUser}
+          className="text-red-700 cursor-pointer"
+        >
           Delete Account
         </span>
 
@@ -124,9 +175,17 @@ export default function Profile() {
         </span>
 
       </div>
-      <p className="text-red-700 mt-5">{error ? error:""}</p>
+
+      <p className="text-red-700 mt-5">
+        {error ? error : ""}
+      </p>
+
       <p className="text-green-700 mt-5">
-        {updateSuccess ? 'User is updated successfully!':''}</p>
+        {updateSuccess
+          ? "User updated successfully!"
+          : ""}
+      </p>
+
     </div>
   );
 }
