@@ -14,16 +14,17 @@ export default function OAuth() {
       const result = await signInWithPopup(auth, provider);
 
       const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: result.user.displayName,
-          email: result.user.email,
-          photo: result.user.photoURL,
-        }),
-      });
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  credentials: 'include',
+  body: JSON.stringify({
+    name: result.user.displayName,
+    email: result.user.email,
+    photo: result.user.photoURL,
+  }),
+});
 
       const data = await res.json();
 
