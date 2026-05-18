@@ -98,9 +98,10 @@ export default function CreateListing() {
       });
 
       const res = await fetch("http://localhost:3000/api/upload", {
-        method: "POST",
-        body: data,
-      });
+  method: "POST",
+  credentials: "include",
+  body: data,
+});
 
       const result = await res.json();
 
@@ -194,7 +195,7 @@ export default function CreateListing() {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
+        credentials:'include',
         body: JSON.stringify(formData),
       });
 

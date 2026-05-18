@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
+import { useSelector } from "react-redux";
 import "swiper/css";
 import "swiper/css/navigation";
+import Contact from "../components/Contact";
 
 export default function Listing() {
   const params = useParams();
@@ -12,7 +14,8 @@ export default function Listing() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [copied, setCopied] = useState(false);
-
+  const [contact,setContact]=useState(false);
+  const currentUser=useSelector((state)=>state.user.currentUser);
   useEffect(() => {
     const fetchListing = async () => {
       try {
@@ -133,10 +136,16 @@ export default function Listing() {
 
             </div>
 
-            {/* CONTACT */}
-            <button className="w-full mt-6 bg-slate-800 text-white py-3 rounded-md hover:opacity-90">
-              CONTACT LANDLORD
-            </button>
+            {currentUser && listing.userRef !== currentUser._id && !contact && (
+  <button
+    onClick={() => setContact(true)}
+    className="w-full mt-6 bg-slate-800 text-white py-3 rounded-md hover:opacity-90"
+  >
+    CONTACT LANDLORD
+  </button>
+)}
+
+{contact && <Contact listing={listing} />}
 
           </div>
         </>

@@ -126,6 +126,7 @@ export const google = async (req, res, next) => {
         httpOnly: true,
         sameSite: 'lax',
         secure: false,
+        path:'/',
       })
       .status(200)
       .json(rest);
