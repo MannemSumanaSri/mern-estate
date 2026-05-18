@@ -3,7 +3,6 @@ import bcryptjs from 'bcryptjs';
 import { errorHandler } from '../utils/error.js';
 import jwt from 'jsonwebtoken';
 
-/* ---------------- SIGNUP ---------------- */
 export const signup = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
@@ -24,7 +23,6 @@ export const signup = async (req, res, next) => {
   }
 };
 
-/* ---------------- SIGNIN ---------------- */
 export const signin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -52,44 +50,53 @@ export const signin = async (req, res, next) => {
 
     const { password: pass, ...rest } = validUser._doc;
 
-    // 🔥 IMPORTANT FIX: return token also
     res
-      .cookie('access_token', token, { httpOnly: true })
+      .cookie('access_token', token, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: false,
+      })
       .status(200)
       .json({
         success: true,
-        token,   // 👈 ADD THIS
-        user: rest
+        user: rest,
       });
-
   } catch (error) {
     next(error);
   }
 };
 
-/* ---------------- GOOGLE AUTH ---------------- */
 export const google = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: req.body.email });
 
-    // If user exists → login
     if (user) {
       const token = jwt.sign(
         { id: user._id },
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
       );
 
       const { password: pass, ...rest } = user._doc;
 
       return res
-        .cookie('access_token', token, { httpOnly: true })
+        .cookie('access_token', token, {
+          httpOnly: true,
+          sameSite: 'lax',
+          secure: false,
+        })
         .status(200)
         .json(rest);
     }
 
-    // If user does NOT exist → create new user
-    const generatedPassword = Math.random().toString(36).slice(-8);
-    const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
+    const generatedPassword = Math.random()
+      .toString(36)
+      .slice(-8);
+
+    const hashedPassword = bcryptjs.hashSync(
+      generatedPassword,
+      10
+    );
 
     const newUser = new User({
       username:
@@ -108,25 +115,31 @@ export const google = async (req, res, next) => {
 
     const token = jwt.sign(
       { id: newUser._id },
-      process.env.JWT_SECRET
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
     );
 
     const { password: pass, ...rest } = newUser._doc;
 
     res
-      .cookie('access_token', token, { httpOnly: true })
+      .cookie('access_token', token, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: false,
+      })
       .status(200)
       .json(rest);
-
   } catch (error) {
     next(error);
   }
 };
-export const signOut = async(req,res,next)=>{
-  try{
+
+export const signOut = async (req, res, next) => {
+  try {
     res.clearCookie('access_token');
+
     res.status(200).json('User has been logged out!');
-  }catch(error){
+  } catch (error) {
     next(error);
   }
-}
+};

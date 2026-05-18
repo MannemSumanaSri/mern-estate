@@ -15,32 +15,34 @@ export default function SignIn() {
       [e.target.id]: e.target.value,
     });
   };
-  const handleSubmit = async (e) =>{
-    e.preventDefault();
-    try{
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-      dispatch(signInStart());
-      const res = await fetch('/api/auth/signin',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type':'application/json',
-          },
-          body: JSON.stringify(formData),
-        }
-      );
-      const data = await res.json();
-      if(data.success === false){
-        dispatch(signInFailure(data.message));
-        return;
-      }
-      dispatch(signInSuccess(data));
-      navigate('/');
+  try {
+    dispatch(signInStart());
+
+    const res = await fetch('/api/auth/signin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(formData),
+    });
+
+    const data = await res.json();
+
+    if (data.success === false) {
+      dispatch(signInFailure(data.message));
+      return;
     }
-    catch(error){
-      dispatch(signInFailure(error.message));
-    }
-  };
+
+    dispatch(signInSuccess(data));
+    navigate('/');
+  } catch (error) {
+    dispatch(signInFailure(error.message));
+  }
+};
 
   return (
     <div className='p-3 max-w-lg mx-auto'>

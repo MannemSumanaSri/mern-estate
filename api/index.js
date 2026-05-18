@@ -13,7 +13,13 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -21,8 +27,6 @@ app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/listing", listingRouter);
 app.use("/api/upload", uploadRoute);
-
-console.log("MONGO URI:", process.env.MONGO);
 
 mongoose
   .connect(process.env.MONGO)
@@ -40,7 +44,7 @@ mongoose
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
 
-  const message = err.message || "internal server error";
+  const message = err.message || "Internal Server Error";
 
   return res.status(statusCode).json({
     success: false,
