@@ -120,7 +120,8 @@ export default function Profile() {
       </h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <img
+        
+        <img 
           src={currentUser.avatar}
           alt="profile"
           className="rounded-full h-24 w-24 object-cover cursor-pointer self-center mt-2"
