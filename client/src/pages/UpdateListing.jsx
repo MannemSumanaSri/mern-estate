@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate,useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function CreateListing() {
   const navigate = useNavigate();
-const params=useParams();
+  const params = useParams();
+
   const [files, setFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -25,20 +26,23 @@ const params=useParams();
     imageUrls: [],
   });
 
+  useEffect(() => {
+    const fetchListing = async () => {
+      const listingId = params.listingId;
+      const res = await fetch(`/api/listing/get/${listingId}`);
+      const data = await res.json();
 
-useEffect(()=>{
-    const fetchListing=async()=>{
-        const listingId=params.listingId;
-        const res = await fetch(`/api/listing/get/${listingId}`);
-        const data=await res.json();
-        if(data.success===false){
-            console.log(data.message);
-            return;
-        }
-        setFormData(data);
-    }
+      if (data.success === false) {
+        console.log(data.message);
+        return;
+      }
+
+      setFormData(data);
+    };
+
     fetchListing();
-},[])
+  }, []);
+
   const handleChange = (e) => {
     if (e.target.type === "checkbox") {
       setFormData({
@@ -56,8 +60,11 @@ useEffect(()=>{
   const handleImageChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
 
-    if (selectedFiles.length + files.length > 6) {
-      setImageUploadError("You can upload maximum 6 images");
+    const totalImages =
+      files.length + formData.imageUrls.length + selectedFiles.length;
+
+    if (totalImages > 6) {
+      setImageUploadError("Maximum 6 images allowed (including uploaded ones)");
       return;
     }
 
@@ -73,7 +80,6 @@ useEffect(()=>{
     setImageUploadError("");
 
     const updatedFiles = [...files, ...validFiles];
-
     setFiles(updatedFiles);
 
     const previews = updatedFiles.map((file) =>
@@ -85,7 +91,6 @@ useEffect(()=>{
 
   const handleRemoveImage = (index) => {
     const updatedFiles = files.filter((_, i) => i !== index);
-
     setFiles(updatedFiles);
 
     const previews = updatedFiles.map((file) =>
@@ -93,6 +98,15 @@ useEffect(()=>{
     );
 
     setImagePreviews(previews);
+  };
+
+  const handleRemoveUploadedImage = (index) => {
+    const updatedUrls = formData.imageUrls.filter((_, i) => i !== index);
+
+    setFormData({
+      ...formData,
+      imageUrls: updatedUrls,
+    });
   };
 
   const handleImageUpload = async () => {
@@ -126,7 +140,7 @@ useEffect(()=>{
 
       setFormData((prev) => ({
         ...prev,
-        imageUrls: result.imageUrls,
+        imageUrls: [...prev.imageUrls, ...result.imageUrls],
       }));
 
       setUploading(false);
@@ -191,50 +205,48 @@ useEffect(()=>{
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setFormError("");
+    e.preventDefault();
+    setFormError("");
 
-  const validationError = validateForm();
-  if (validationError) {
-    setFormError(validationError);
-    return;
-  }
-
-  try {
-    const res = await fetch(
-      `http://localhost:3000/api/listing/update/${params.listingId}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(formData),
-      }
-    );
-
-    const text = await res.text(); // 👈 IMPORTANT FIX
-
-    let data;
-    try {
-      data = text ? JSON.parse(text) : {};
-    } catch (err) {
-      throw new Error("Backend did not return valid JSON");
-    }
-
-    if (!res.ok) {
-      setFormError(data.message || "Update failed");
+    const validationError = validateForm();
+    if (validationError) {
+      setFormError(validationError);
       return;
     }
 
-    
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/listing/update/${params.listingId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(formData),
+        }
+      );
 
-    navigate(`/listing/${data.listing?._id || params.listingId}`);
-  } catch (error) {
-    console.log(error);
-    setFormError("Something went wrong");
-  }
-};
+      const text = await res.text();
+
+      let data;
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (err) {
+        throw new Error("Backend did not return valid JSON");
+      }
+
+      if (!res.ok) {
+        setFormError(data.message || "Update failed");
+        return;
+      }
+
+      navigate(`/listing/${data.listing?._id || params.listingId}`);
+    } catch (error) {
+      console.log(error);
+      setFormError("Something went wrong");
+    }
+  };
 
   return (
     <main className="p-3 max-w-6xl mx-auto">
@@ -284,10 +296,7 @@ useEffect(()=>{
                 className="w-5"
                 checked={formData.type === "sale"}
                 onChange={() =>
-                  setFormData({
-                    ...formData,
-                    type: "sale",
-                  })
+                  setFormData({ ...formData, type: "sale" })
                 }
               />
               <span>Sell</span>
@@ -300,10 +309,7 @@ useEffect(()=>{
                 className="w-5"
                 checked={formData.type === "rent"}
                 onChange={() =>
-                  setFormData({
-                    ...formData,
-                    type: "rent",
-                  })
+                  setFormData({ ...formData, type: "rent" })
                 }
               />
               <span>Rent</span>
@@ -427,17 +433,12 @@ useEffect(()=>{
           />
 
           {imageUploadError && (
-            <p className="text-red-500 text-sm">
-              {imageUploadError}
-            </p>
+            <p className="text-red-500 text-sm">{imageUploadError}</p>
           )}
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {imagePreviews.map((image, index) => (
-              <div
-                key={index}
-                className="border rounded-lg p-2 flex flex-col gap-2"
-              >
+              <div key={index} className="border rounded-lg p-2 flex flex-col gap-2">
                 <img
                   src={image}
                   alt="preview"
@@ -470,9 +471,7 @@ useEffect(()=>{
 
           {formData.imageUrls.length > 0 && (
             <div className="flex flex-col gap-3">
-              <h2 className="text-lg font-semibold">
-                Uploaded Images
-              </h2>
+              <h2 className="text-lg font-semibold">Uploaded Images</h2>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {formData.imageUrls.map((url, index) => (
@@ -487,11 +486,7 @@ useEffect(()=>{
             </div>
           )}
 
-          {formError && (
-            <p className="text-red-500 text-sm">
-              {formError}
-            </p>
-          )}
+          {formError && <p className="text-red-500 text-sm">{formError}</p>}
 
           <button
             disabled={uploading}
