@@ -99,7 +99,7 @@ export default function Listing() {
 
             {/* TITLE */}
             <h1 className="text-xl sm:text-2xl font-semibold">
-              {listing.name} - $ {listing.regularPrice} / month
+              {listing.name} - ₹ {listing.regularPrice} / month
             </h1>
 
             {/* LOCATION */}
