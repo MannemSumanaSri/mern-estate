@@ -3,6 +3,13 @@ import bcryptjs from 'bcryptjs';
 import { errorHandler } from '../utils/error.js';
 import jwt from 'jsonwebtoken';
 
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: 'none',
+  secure: true,
+  path: '/',
+};
+
 export const signup = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
@@ -51,11 +58,7 @@ export const signin = async (req, res, next) => {
     const { password: pass, ...rest } = validUser._doc;
 
     res
-      .cookie('access_token', token, {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: false,
-      })
+      .cookie('access_token', token, cookieOptions)
       .status(200)
       .json({
         success: true,
@@ -80,32 +83,19 @@ export const google = async (req, res, next) => {
       const { password: pass, ...rest } = user._doc;
 
       return res
-        .cookie('access_token', token, {
-          httpOnly: true,
-          sameSite: 'lax',
-          secure: false,
-        })
+        .cookie('access_token', token, cookieOptions)
         .status(200)
         .json(rest);
     }
 
-    const generatedPassword = Math.random()
-      .toString(36)
-      .slice(-8);
+    const generatedPassword = Math.random().toString(36).slice(-8);
 
-    const hashedPassword = bcryptjs.hashSync(
-      generatedPassword,
-      10
-    );
+    const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
 
     const newUser = new User({
       username:
-        req.body.name
-          .split(' ')
-          .join('')
-          .toLowerCase() +
+        req.body.name.split(' ').join('').toLowerCase() +
         Math.random().toString(36).slice(-8),
-
       email: req.body.email,
       password: hashedPassword,
       avatar: req.body.photo,
@@ -122,12 +112,7 @@ export const google = async (req, res, next) => {
     const { password: pass, ...rest } = newUser._doc;
 
     res
-      .cookie('access_token', token, {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: false,
-        path:'/',
-      })
+      .cookie('access_token', token, cookieOptions)
       .status(200)
       .json(rest);
   } catch (error) {
@@ -137,7 +122,9 @@ export const google = async (req, res, next) => {
 
 export const signOut = async (req, res, next) => {
   try {
-    res.clearCookie('access_token');
+    res.clearCookie('access_token', {
+      path: '/',
+    });
 
     res.status(200).json('User has been logged out!');
   } catch (error) {
