@@ -5,6 +5,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
@@ -15,9 +16,14 @@ dotenv.config();
 
 const app = express();
 
+/* ---------------- PATH FIX ---------------- */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// ✅ FIXED: go ONE LEVEL UP from /api to project root
+const clientDistPath = path.join(__dirname, "../client/dist");
+
+/* ---------------- MIDDLEWARE ---------------- */
 app.use(
   cors({
     origin: [
@@ -32,27 +38,44 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+/* ---------------- API ROUTES ---------------- */
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/listing", listingRouter);
 app.use("/api/upload", uploadRoute);
 
-app.use(express.static(path.join(__dirname, "client", "dist")));
+/* ---------------- FRONTEND (SAFE SERVE) ---------------- */
+if (fs.existsSync(clientDistPath)) {
+  console.log("✅ Serving frontend from:", clientDistPath);
 
-// SAFE fallback route (NO *)
-app.get(/.*/, (req, res) => {
-  if (req.path.startsWith("/api")) return;
-  res.sendFile(path.join(__dirname, "client", "dist", "index.html"));
-});
+  app.use(express.static(clientDistPath));
 
+  app.get(/.*/, (req, res) => {
+    if (req.path.startsWith("/api")) return;
+    res.sendFile(path.join(clientDistPath, "index.html"));
+  });
+} else {
+  console.log("❌ FRONTEND NOT FOUND!");
+  console.log("Expected path:", clientDistPath);
+  console.log("👉 Run: cd client && npm run build");
+}
+
+/* ---------------- DB + SERVER ---------------- */
 mongoose
   .connect(process.env.MONGO)
   .then(() => {
     console.log("MongoDB connected!");
-    app.listen(3000, () => console.log("Server running on port 3000"));
-  })
-  .catch((err) => console.log(err));
 
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () =>
+      console.log(`🚀 Server running on port ${PORT}`)
+    );
+  })
+  .catch((err) => {
+    console.log("MongoDB Error:", err);
+  });
+
+/* ---------------- ERROR HANDLER ---------------- */
 app.use((err, req, res, next) => {
   res.status(err.statusCode || 500).json({
     success: false,
