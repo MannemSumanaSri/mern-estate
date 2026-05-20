@@ -430,7 +430,7 @@ export default function CreateListing() {
 
         const res =
           await fetch(
-            "https://mern-estate.onrender.com/api/listing/create",
+            "https://mern-estate-pisr.onrender.com//api/listing/create",
             {
 
               method: "POST",
