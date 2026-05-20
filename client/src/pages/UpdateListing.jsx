@@ -355,7 +355,7 @@ export default function CreateListing() {
                 type="number"
                 id="bedrooms"
                 min="1"
-                max="10"
+               
                 required
                 value={formData.bedrooms}
                 className="p-3 border border-gray-300 rounded-lg"
@@ -369,7 +369,7 @@ export default function CreateListing() {
                 type="number"
                 id="bathrooms"
                 min="1"
-                max="10"
+                
                 required
                 value={formData.bathrooms}
                 className="p-3 border border-gray-300 rounded-lg"
@@ -383,7 +383,7 @@ export default function CreateListing() {
                 type="number"
                 id="regularPrice"
                 min="1"
-                max="100000"
+                
                 required
                 value={formData.regularPrice}
                 className="p-3 border border-gray-300 rounded-lg"
@@ -391,7 +391,11 @@ export default function CreateListing() {
               />
               <div>
                 <p>Regular Price</p>
-                <span className="text-xs">$ / month</span>
+                <span className="text-xs">
+                    {formData.type === "rent"
+                      ? "₹/month"
+                      : "₹"}
+                  </span>
               </div>
             </div>
 
@@ -401,7 +405,7 @@ export default function CreateListing() {
                   type="number"
                   id="discountedPrice"
                   min="1"
-                  max="100000"
+                  
                   required
                   value={formData.discountedPrice}
                   className="p-3 border border-gray-300 rounded-lg"
@@ -409,7 +413,11 @@ export default function CreateListing() {
                 />
                 <div>
                   <p>Discount Price</p>
-                  <span className="text-xs">$ / month</span>
+                  <span className="text-xs">
+                    {formData.type === "rent"
+                      ? "₹/month"
+                      : "₹"}
+                  </span>
                 </div>
               </div>
             )}
