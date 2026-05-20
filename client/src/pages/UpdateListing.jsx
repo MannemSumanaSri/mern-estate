@@ -435,7 +435,7 @@ export default function CreateListing() {
 
   try {
     const res = await fetch(
-      `http://localhost:3000/api/listing/update/${params.listingId}`,
+      `https://mern-estate-pisr.onrender.com/api/listing/update/${params.listingId}`,
       {
         method: "PUT",
         headers: {
