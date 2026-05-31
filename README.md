@@ -230,6 +230,3 @@ This project is intended for educational, learning, and portfolio purposes.
 
 ---
 
-## 🎤 Interview Summary
-
-MERN Estate is a full-stack real estate marketplace application where users can securely authenticate, create and manage property listings, search and filter properties, and manage profiles using React, Node.js, Express.js, MongoDB, Redux Toolkit, JWT, and Firebase OAuth.
